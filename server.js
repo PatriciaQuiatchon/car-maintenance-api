@@ -1,28 +1,46 @@
 const express = require("express");
 const bodyParser = require('body-parser');
 const app = express();
-const db = require("./db/db");
-const { createUser } = require("./module/users/index");
+
+const userRoutes = require('./routers/users');
+const authRoutes = require('./routers/auth');
+
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const { googleAuth } = require('./controllers/auth/index');
+
 const port = process.env.PORT
 
 app.use(bodyParser.json());
 
-app.post("/api/user", async (req, res) => {
-    const { email, password, name, role } = req.body;
+// Passport setup
+passport.use(
+    new GoogleStrategy(
+        {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: '/api/auth/google/callback',
+        },
+        async (accessToken, refreshToken, profile, done) => {
+        try {
+            const user = await googleAuth(profile);
+            done(null, user);
+        } catch (err) {
+            done(err, null);
+        }
+        }
+    )
+);
 
-    if (!email || !password || !name || !role) {
-        return res.status(400).json({ message: "Username and password are required." });
-    }
+// Session handling for Passport
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((user, done) => done(null, user));
 
-    try {
-        const result = await createUser(db, email, password, name, role);
-        res.status(201).json({ message: "User created successfully", userId: result.insertId });
-    } catch (err) {
-        console.error("Error creating user:", err.message);
-        res.status(500).json({ message: "Error creating user." });
-    }
-});
+// Routes
+app.use('/api/auth', authRoutes);
 
+app.use('/api', userRoutes)
+app.use('/api', authRoutes)
 
 app.listen(port, () => {
     console.log("Server is running on port 3000");
