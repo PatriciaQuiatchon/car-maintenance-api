@@ -43,7 +43,10 @@ const login = async (req, res) => {
 
         // Generate token
         const token = generateToken(user[0]);
-        res.json({ message: 'Login successful', token });
+
+        delete user[0].password
+        
+        res.json({ message: 'Login successful', token, user: user[0] });
 
     } catch (err) {
         res.status(500).json({ error: 'Internal server error' });

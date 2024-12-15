@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const app = express();
 
@@ -35,6 +36,19 @@ passport.use(
 // Session handling for Passport
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
+
+
+const allowedOrigins = ['http://localhost:5173', 'http://yourfrontend.com'];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}));
 
 // Routes
 app.use('/api/auth', authRoutes);
