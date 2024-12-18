@@ -15,8 +15,8 @@ const register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Insert new user
-        const query = 'INSERT INTO users (user_id, name, email, password, created_at, updated_at) VALUES (UUID(), ?, ?, ?, NOW(), NOW())';
-        await dbQuery(query, [name, email, hashedPassword]);
+        const query = 'INSERT INTO user (user_id, name, email, password, role, created_at, updated_at) VALUES (UUID(), ?, ?, ?, ?, NOW(), NOW())';
+        await dbQuery(query, [name, email, hashedPassword, "customer"]);
 
         res.status(201).json({ message: 'User registered successfully' });
 

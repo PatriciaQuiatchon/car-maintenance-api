@@ -33,6 +33,14 @@ const getAllServiceRequest = async (req, res) => {
     }
 }
 
+const createServiceRequest = async (req, res) => {
+    try {
+        const query = "INSERT INTO "
+    } catch (err) {
+
+    }
+}
+
 module.exports = {
     getServiceRequest,
     getAllServiceRequest,
