@@ -5,10 +5,12 @@ const app = express();
 
 const userRoutes = require('./routers/users');
 const authRoutes = require('./routers/auth');
+const vehicleRoutes = require('./routers/vehicle');
+const serviceRoutes = require('./routers/service');
 
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const { googleAuth } = require('./controllers/auth/index');
+const { googleAuth } = require('./repositories/auth/index');
 
 const port = process.env.PORT
 
@@ -55,6 +57,8 @@ app.use('/api/auth', authRoutes);
 
 app.use('/api', userRoutes)
 app.use('/api', authRoutes)
+app.use('/api', vehicleRoutes)
+app.use('/api', serviceRoutes)
 
 app.listen(port, () => {
     console.log("Server is running on port 3000");

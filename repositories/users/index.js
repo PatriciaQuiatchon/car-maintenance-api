@@ -29,10 +29,22 @@ const createUser = async (req, res) => {
 
 const getUsersByRole = async (req, res) => {
     const role = req.params.role;
+    const { orderBy = 'created_at', direction = 'ASC', limit = 25 } = req.query;
 
     try {
-        const query = 'SELECT user_id, name, email, role FROM user WHERE role = ?';
-        const users = await dbQuery(query, [role]); // Fetch all users
+        
+        const validatedLimit = parseInt(limit, 10);
+        if (isNaN(validatedLimit) || validatedLimit <= 0) {
+            return res.status(400).json({ error: 'Invalid limit value' });
+        }
+
+        const query = `
+            SELECT user_id, name, email, role FROM user
+            WHERE role = ?
+            ORDER BY ${orderBy} ${direction}
+            LIMIT ?
+            `;
+        const users = await dbQuery(query, [role, validatedLimit]); // Fetch all users
         res.json(users);
     } catch (err) {
         console.error('Error fetching users:', err.message);
