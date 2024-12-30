@@ -39,7 +39,7 @@ app.use(bodyParser.json());
 // passport.serializeUser((user, done) => done(null, user));
 // passport.deserializeUser((user, done) => done(null, user));
 
-const allowedOrigins = ['http://localhost:5173', 'https://car-maintenance-app.vercel.app'];
+const allowedOrigins = ['http://localhost:5173', 'https://car-maintenance-app.vercel.app', 'car-maintenance-i2nqxjws2-sonics-projects-ce6ca4bf.vercel.app'];
 
 // CORS Middleware
 app.use(cors({
