@@ -5,7 +5,7 @@ const { registerVehicle,
         deleteVehicle,
         getVehicleById,
         getVehiclesByUser  
-    } = require('../repositories/vehicle/index');
+    } = require('../controllers/vehicle/index');
 
 const { authenticate } = require('../middleware/auth')
 
@@ -13,7 +13,7 @@ const { authenticate } = require('../middleware/auth')
 //Users Routes
 router.get('/vehicle/:id', authenticate, getVehicleById);
 router.get('/vehicles/:id', authenticate, getVehiclesByUser);
-router.post('/vehicle', authenticate, registerVehicle); 
+router.post('/vehicle/:id', authenticate, registerVehicle); 
 router.put('/vehicle/:id', authenticate, updateVehicle);
 router.delete('/vehicle/:id', authenticate, deleteVehicle); 
 

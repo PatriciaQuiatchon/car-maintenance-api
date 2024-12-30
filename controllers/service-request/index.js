@@ -1,4 +1,7 @@
 const dbQuery = require("../../db/db");
+const { fetchServices } = require("../../repository/service");
+const { fetchUserByRole } = require("../../repository/user");
+const { fetchVehicleByUser } = require("../../repository/vehicle");
 
 const createServiceRequest = async (req, res) => {
     const { user_id, vehicle_id, service_id, preffered_schedule, request_status, notes } = req.body;
@@ -71,10 +74,10 @@ const getServiceRequestById = async (req, res) => {
     }
 };
 
-
 const getServiceRequests = async (req, res) => {
     const userId = req.params.id
-    const { orderBy = 'created_at', direction = 'ASC', limit = 25 } = req.query;
+    const onlyRequest = req.query.onlyRequest
+    const { orderBy = 'created_at', direction = 'ASC', limit = 50 } = req.query;
 
     try {
         
@@ -87,34 +90,55 @@ const getServiceRequests = async (req, res) => {
         const params = [];
 
         // Add WHERE condition dynamically
-        if (userId || (filterBy && filterValue)) {
-            query += 'WHERE ';
-            const conditions = [];
+        // if (userId || (filterBy && filterValue)) {
+        //     query += 'WHERE ';
+        //     const conditions = [];
 
-            if (userId) {
-                conditions.push('user_id = ?');
-                params.push(userId);
-            }
+        //     if (userId) {
+        //         conditions.push('user_id = ?');
+        //         params.push(userId);
+        //     }
 
-            if (filterBy && filterValue) {
-                conditions.push(`${filterBy} = ?`);
-                params.push(filterValue);
-            }
+        //     if (filterBy && filterValue) {
+        //         conditions.push(`${filterBy} = ?`);
+        //         params.push(filterValue);
+        //     }
 
-            query += conditions.join(' AND ');
-        }
+        //     query += conditions.join(' AND ');
+        // }
 
         // Add ORDER BY and LIMIT
-        query += ` ORDER BY ${orderBy} ${direction} LIMIT ?`;
-        params.push(validatedLimit);
+        // query += ` ORDER BY ${orderBy} ${direction} LIMIT ?`;
+        // params.push(validatedLimit);
 
-        const results = await dbQuery(query, [userId, validatedLimit]);
-        res.json(results);
+        // const requests = await dbQuery(query, [userId, validatedLimit]);
+        
+        let finalResults =  {
+            // requests,
+        }
+        if (onlyRequest !== "true") {
+
+            const services = await fetchServices(orderBy, "ASC", validatedLimit)
+    
+            const mechanics = await fetchUserByRole(orderBy, "ASC", "mechanic", validatedLimit)
+    
+            const vehicles = await fetchVehicleByUser(orderBy, direction, userId, validatedLimit)
+
+            finalResults = {
+                ...finalResults,
+                services,
+                mechanics, 
+                vehicles
+            }
+        }
+
+        res.json(finalResults);
     } catch (err) {
-        console.error('Error fetching vehicle:', err.message);
-        res.status(500).json({ error: 'Error fetching vehicle' });
+        console.error('Error fetching requests:', err.message);
+        res.status(500).json({ error: 'Error fetching requests' });
     }
 };
+
   
 module.exports = { 
     createServiceRequest,

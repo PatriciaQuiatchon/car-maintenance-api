@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const dbQuery = require("../../db/db");
+const { fetchUserByRole } = require("../../repository/user");
 
 const createUser = async (req, res) => {
     const { name, email, password, role } = req.body;
@@ -38,13 +39,7 @@ const getUsersByRole = async (req, res) => {
             return res.status(400).json({ error: 'Invalid limit value' });
         }
 
-        const query = `
-            SELECT user_id, name, email, role FROM user
-            WHERE role = ?
-            ORDER BY ${orderBy} ${direction}
-            LIMIT ?
-            `;
-        const users = await dbQuery(query, [role, validatedLimit]); // Fetch all users
+        const users = await fetchUserByRole(orderBy, direction, role, validatedLimit)
         res.json(users);
     } catch (err) {
         console.error('Error fetching users:', err.message);
@@ -66,6 +61,24 @@ const getUserById = async (req, res) => {
         res.json(results[0]); // Return the single user object
     } catch (err) {
         console.error('Error fetching user by user_id:', err.message);
+        res.status(500).json({ error: 'Error fetching user' });
+    }
+};
+
+const getUserByEmail = async (req, res) => {
+    const email = req.params.email;
+
+    try {
+        const query = 'SELECT user_id, name, email, role FROM user WHERE email = ?';
+        const results = await dbQuery(query, [email]);
+
+        if (results.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.json(results[0]); // Return the single user object
+    } catch (err) {
+        console.error('Error fetching user by email:', err.message);
         res.status(500).json({ error: 'Error fetching user' });
     }
 };
@@ -110,6 +123,7 @@ const deleteUser = async (req, res) => {
 module.exports = { 
     createUser, 
     getUserById,
+    getUserByEmail,
     getUsersByRole,
     updateUser,
     deleteUser,

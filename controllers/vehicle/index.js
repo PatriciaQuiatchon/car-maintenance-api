@@ -1,12 +1,14 @@
 const dbQuery = require("../../db/db");
+const { fetchVehicleByUser } = require("../../repository/vehicle/index");
 
 const registerVehicle = async (req, res) => {
-    const { name, type, model, plate_number, user_id, } = req.body;
+    const userId = req.params.id
+    const { name, type, model, plate_number, } = req.body;
 
     try {
         const query = `INSERT INTO vehicle (vehicle_id, user_id, name, type, model, plate_number, created_at, updated_at) 
                         VALUES (UUID(), ?, ?, ?, ?, ?, NOW(), NOW())`;
-        const result = await dbQuery(query, [user_id, name, type, model, plate_number]);
+        const result = await dbQuery(query, [userId, name, type, model, plate_number]);
 
         res.status(201).json({ message: 'Vehicle registered successfully', userId: result.insertId });
     } catch (err) {
@@ -82,12 +84,7 @@ const getVehiclesByUser = async (req, res) => {
             return res.status(400).json({ error: 'Invalid limit value' });
         }
 
-        const query = `SELECT * FROM vehicle 
-            WHERE user_id = ?
-            ORDER BY ${orderBy} ${direction}
-            LIMIT ?
-        `;
-        const results = await dbQuery(query, [userId, validatedLimit]);
+        const results = await fetchVehicleByUser(orderBy, direction, userId, validatedLimit)
         res.json(results);
     } catch (err) {
         console.error('Error fetching vehicle:', err.message);

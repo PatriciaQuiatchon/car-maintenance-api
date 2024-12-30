@@ -1,4 +1,5 @@
 const dbQuery = require("../../db/db");
+const { fetchServices } = require("../../repository/service");
 
 const createService = async (req, res) => {
     const { name, description, price } = req.body;
@@ -73,7 +74,7 @@ const getService = async (req, res) => {
 
 
 const getServices = async (req, res) => {
-    const { orderBy = 'created_at', direction = 'ASC', limit = 25 } = req.query;
+    const { orderBy = 'created_at', direction = 'ASC', limit = 50 } = req.query;
 
     try {
         
@@ -82,11 +83,7 @@ const getServices = async (req, res) => {
             return res.status(400).json({ error: 'Invalid limit value' });
         }
 
-        const query = `SELECT * FROM service 
-            ORDER BY ${orderBy} ${direction}
-            LIMIT ?
-        `;
-        const results = await dbQuery(query, [validatedLimit]);
+        const results = await fetchServices(orderBy, direction, validatedLimit)
         res.json(results);
     } catch (err) {
         console.error('Error fetching service:', err.message);

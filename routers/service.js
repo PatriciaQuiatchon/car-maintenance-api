@@ -5,7 +5,7 @@ const { createService,
         deleteService,
         getService,
         getServices 
-    } = require('../repositories/service/index');
+    } = require('../controllers/service/index');
 const { authenticate } = require('../middleware/auth')
 
 // Routes

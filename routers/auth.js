@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, } = require('../repositories/auth/index');
+const { register, login, } = require('../controllers/auth/index');
 const passport = require('passport');
 
 //Auth Routes
