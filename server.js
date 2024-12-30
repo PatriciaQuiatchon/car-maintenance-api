@@ -40,7 +40,7 @@ passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
 
-const allowedOrigins = ['http://localhost:5173', 'http://yourfrontend.com'];
+const allowedOrigins = ['http://localhost:5173', 'https://car-maintenance-app.vercel.app'];
 
 app.use(cors({
   origin: function(origin, callback) {
