@@ -1,28 +1,64 @@
 const express = require("express");
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const app = express();
-const db = require("./db/db");
-const { createUser } = require("./module/users/index");
+
+const userRoutes = require('./routers/users');
+const authRoutes = require('./routers/auth');
+const vehicleRoutes = require('./routers/vehicle');
+const serviceRoutes = require('./routers/service');
+
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const { googleAuth } = require('./repositories/auth/index');
+
 const port = process.env.PORT
 
 app.use(bodyParser.json());
 
-app.post("/api/user", async (req, res) => {
-    const { email, password, name, role } = req.body;
+// Passport setup
+passport.use(
+    new GoogleStrategy(
+        {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: '/api/auth/google/callback',
+        },
+        async (accessToken, refreshToken, profile, done) => {
+        try {
+            const user = await googleAuth(profile);
+            done(null, user);
+        } catch (err) {
+            done(err, null);
+        }
+        }
+    )
+);
 
-    if (!email || !password || !name || !role) {
-        return res.status(400).json({ message: "Username and password are required." });
+// Session handling for Passport
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((user, done) => done(null, user));
+
+
+const allowedOrigins = ['http://localhost:5173', 'http://yourfrontend.com'];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
     }
+  }
+}));
 
-    try {
-        const result = await createUser(db, email, password, name, role);
-        res.status(201).json({ message: "User created successfully", userId: result.insertId });
-    } catch (err) {
-        console.error("Error creating user:", err.message);
-        res.status(500).json({ message: "Error creating user." });
-    }
-});
+// Routes
+app.use('/api/auth', authRoutes);
 
+app.use('/api', userRoutes)
+app.use('/api', authRoutes)
+app.use('/api', vehicleRoutes)
+app.use('/api', serviceRoutes)
 
 app.listen(port, () => {
     console.log("Server is running on port 3000");

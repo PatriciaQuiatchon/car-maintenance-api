@@ -18,4 +18,16 @@ db.on("error", (err) => {
     console.error("DB connection error:", err.message);
 });
 
-module.exports = db;
+const dbQuery = (query, params) => {
+    return new Promise((resolve, reject) => {
+      db.query(query, params, (err, results) => {
+        if (err) {
+          return reject(err); // Reject the Promise if an error occurs
+        }
+        resolve(results); // Resolve the Promise with the results
+      });
+    });
+  };
+  
+
+module.exports = dbQuery;
