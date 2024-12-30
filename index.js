@@ -39,30 +39,33 @@ app.use(bodyParser.json());
 // passport.serializeUser((user, done) => done(null, user));
 // passport.deserializeUser((user, done) => done(null, user));
 
-
 const allowedOrigins = ['http://localhost:5173', 'https://car-maintenance-app.vercel.app'];
 
 // CORS Middleware
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin (e.g., mobile apps or curl requests)
     if (!origin) {
       return callback(null, true);
     }
     
-    // Check if the origin is allowed
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'), false);
+      console.error(`Blocked by CORS: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Add allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'],    // Add allowed headers if needed
-  credentials: true                                     // If you need to handle cookies or sessions
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization'],    // Allowed headers
+  credentials: true                                     // Allow cookies or sessions
 }));
 
-app.options('*', cors());
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.sendStatus(204); // No Content
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
