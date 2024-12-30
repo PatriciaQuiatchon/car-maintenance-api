@@ -4,8 +4,8 @@ const createService = async (req, res) => {
     const { name, description, price } = req.body;
 
     try {
-        const query = `INSERT INTO service (service_id, name, description, price, created_at, updated_at) 
-                        VALUES (UUID(), ?, ?, ?, NOW(), NOW())`;
+        const query = `INSERT INTO service (service_id, name, description, price, created_at) 
+                        VALUES (UUID(), ?, ?, ?, NOW())`;
         const result = await dbQuery(query, [name, description, price]);
 
         res.status(201).json({ message: 'Service registered successfully', userId: result.insertId });
@@ -20,7 +20,7 @@ const updateService = async (req, res) => {
     const { name, description, price } = req.body;
   
     try {
-      const query = `UPDATE service SET name = ?, description = ?, price = ?, updated_at = NOW() 
+      const query = `UPDATE service SET name = ?, description = ?, price = ? 
                         WHERE service_id = ?`;
       const result = await dbQuery(query, [name, description, price, serviceId]);
   
