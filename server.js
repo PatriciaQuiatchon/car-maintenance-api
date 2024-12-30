@@ -72,6 +72,13 @@ app.use('/api', authRoutes)
 app.use('/api', vehicleRoutes)
 app.use('/api', serviceRoutes)
 
+app.use(express.json());
+
+app.get('/', (req, res) => {
+    res.json({ message: 'Successful!' });
+});
+
+
 app.listen(port, () => {
     console.log("Server is running on port 3000");
 });
