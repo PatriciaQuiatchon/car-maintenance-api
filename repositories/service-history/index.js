@@ -26,6 +26,27 @@ const getAllServiceHistory = async (req, res) => {
             return res.status(400).json({ error: 'Invalid limit value' });
         }
         const query = `
+        SELECT 
+            u.user_name,
+            c.car_name,
+            c.car_plate_number,
+            s.service_name,
+            s.service_amount,
+            sr.service_requested_date
+        FROM 
+            history h
+        JOIN 
+            user u ON h.user_id = u.user_id
+        JOIN 
+            car c ON h.car_id = c.car_id
+        JOIN 
+            service s ON h.service_id = s.service_id
+        JOIN 
+            service_requested sr ON h.service_requested_id = sr.service_requested_id
+        LIMIT ?
+    `;
+
+        const query1 = `
             SELECT * FROM service_history
             ORDER BY ${orderBy} ${direction}
             LIMIT ?
