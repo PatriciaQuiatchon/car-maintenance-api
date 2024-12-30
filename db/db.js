@@ -1,6 +1,10 @@
 const mysql = require("mysql2");
-require("dotenv").config();
+// require("dotenv").config();
+const dotenv = require('dotenv');
 
+// Load environment-specific config
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
+dotenv.config({ path: envFile });
 const db = mysql.createPool({
     connectionLimit: 100,
     host: process.env.DB_HOST,
