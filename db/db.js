@@ -3,15 +3,18 @@ const mysql = require("mysql2");
 const dotenv = require('dotenv');
 
 // Load environment-specific config
-const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
-dotenv.config({ path: envFile });
+if (process.env.NODE_ENV !== 'production') {
+  const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development';
+  dotenv.config({ path: envFile });
+}
+
 const db = mysql.createPool({
-    connectionLimit: 100,
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-    port: process.env.DB_PORT || 3306,
+  connectionLimit: 100,
+  host: process.env.DB_HOST,      // Set in Vercel Environment Variables
+  user: process.env.DB_USER,      // Set in Vercel Environment Variables
+  password: process.env.DB_PASSWORD, // Set in Vercel Environment Variables
+  database: process.env.DB_DATABASE, // Set in Vercel Environment Variables
+  port: process.env.DB_PORT || 3306, // Default port is 3306
 });
 
 db.on("connection", (connection) => {
