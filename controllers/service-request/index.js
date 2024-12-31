@@ -1,18 +1,24 @@
 const dbQuery = require("../../db/db");
+const dayjs = require('dayjs');
+
 const { fetchServices } = require("../../repository/service");
 const { fetchUserByRole } = require("../../repository/user");
 const { fetchVehicleByUser } = require("../../repository/vehicle");
 
 const createServiceRequest = async (req, res) => {
-    const { user_id, vehicle_id, service_id, preffered_schedule, request_status, notes } = req.body;
+    const userId = req.params.id;
+    const { name, service_type, preferred_schedule, note } = req.body;
 
     try {
+
+        const formattedDate = dayjs(preferred_schedule).format('YYYY-MM-DD HH:mm:ss');
+
         const query = `INSERT INTO service_request 
                         (request_id, user_id, vehicle_id, service_id, preferred_schedule, request_status, notes, created_at, updated_at) 
                         VALUES (UUID(), ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
-        const result = await dbQuery(query, [user_id, vehicle_id, service_id, preffered_schedule, request_status, notes]);
+        await dbQuery(query, [userId, name, service_type, formattedDate, "pending", note]);
 
-        res.status(201).json({ message: 'Service requested created successfully', userId: result.insertId });
+        res.status(201).json({ message: 'Service requested created successfully' });
     } catch (err) {
         console.error('Error creating service request:', err.message);
         res.status(500).json({ error: 'Error creating service request' });
@@ -85,36 +91,28 @@ const getServiceRequests = async (req, res) => {
         if (isNaN(validatedLimit) || validatedLimit <= 0) {
             return res.status(400).json({ error: 'Invalid limit value' });
         }
-        // Base query and parameters
-        let query = `SELECT * FROM service_request `;
-        const params = [];
+        const query = `
+            SELECT 
+                v.name as vehicle_name,
+                v.model,
+                v.plate_number,
+                s.name as service_type,
+                s.price,
+                sr.preferred_schedule
+            FROM 
+                service_request sr
+            JOIN 
+                vehicle v ON sr.vehicle_id = v.vehicle_id
+            JOIN 
+                service s ON sr.service_id = s.service_id
+            WHERE
+                sr.user_id = ?
+            LIMIT ?
+        `;
 
-        // Add WHERE condition dynamically
-        // if (userId || (filterBy && filterValue)) {
-        //     query += 'WHERE ';
-        //     const conditions = [];
-
-        //     if (userId) {
-        //         conditions.push('user_id = ?');
-        //         params.push(userId);
-        //     }
-
-        //     if (filterBy && filterValue) {
-        //         conditions.push(`${filterBy} = ?`);
-        //         params.push(filterValue);
-        //     }
-
-        //     query += conditions.join(' AND ');
-        // }
-
-        // Add ORDER BY and LIMIT
-        // query += ` ORDER BY ${orderBy} ${direction} LIMIT ?`;
-        // params.push(validatedLimit);
-
-        // const requests = await dbQuery(query, [userId, validatedLimit]);
-        
+        const requests = await dbQuery(query, [userId, validatedLimit]);
         let finalResults =  {
-            // requests,
+            requests,
         }
         if (onlyRequest !== "true") {
 
