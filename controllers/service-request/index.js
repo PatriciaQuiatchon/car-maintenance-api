@@ -7,16 +7,16 @@ const { fetchVehicleByUser } = require("../../repository/vehicle");
 
 const createServiceRequest = async (req, res) => {
     const userId = req.params.id;
-    const { name, service_type, preferred_schedule, note } = req.body;
+    const { service_id, vehicle_id, preferred_schedule, mechanic_id, note } = req.body;
 
     try {
 
         const formattedDate = dayjs(preferred_schedule).format('YYYY-MM-DD HH:mm:ss');
 
         const query = `INSERT INTO service_request 
-                        (request_id, user_id, vehicle_id, service_id, preferred_schedule, request_status, notes, created_at, updated_at) 
-                        VALUES (UUID(), ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
-        await dbQuery(query, [userId, name, service_type, formattedDate, "pending", note]);
+                        (request_id, user_id, vehicle_id, service_id, mechanic_id, preferred_schedule, request_status, notes, created_at, updated_at) 
+                        VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
+        await dbQuery(query, [userId, vehicle_id, service_id, mechanic_id, formattedDate, "pending", note]);
 
         res.status(201).json({ message: 'Service requested created successfully' });
     } catch (err) {
@@ -27,11 +27,13 @@ const createServiceRequest = async (req, res) => {
 
 const updateServiceRequest = async (req, res) => {
     const requestId = req.params.id;
-    const { service_id, vehicle_id, preffered_schedule, request_status, notes } = req.body;
+    const { service_id, vehicle_id, preferred_schedule, request_status, mechanic_id, notes } = req.body;
   
     try {
-      const query = `UPDATE service_request SET service_id = ?, vehicle_id = ?, preffered_schedule = ?, request_status = ?, notes = ? updated_at = NOW() WHERE request_id = ?`;
-      const result = await dbQuery(query, [service_id, vehicle_id, preffered_schedule, request_status, notes, requestId]);
+        const formattedDate = dayjs(preferred_schedule).format('YYYY-MM-DD HH:mm:ss');
+
+        const query = `UPDATE service_request SET service_id = ?, vehicle_id = ?, mechanic_id = ?, preferred_schedule = ?, request_status = ?, notes = ?, updated_at = NOW() WHERE request_id = ?`;
+        const result = await dbQuery(query, [service_id, vehicle_id, mechanic_id, formattedDate, request_status, notes, requestId]);
   
       if (result.affectedRows === 0) {
         return res.status(404).json({ error: 'Service request not found' });
@@ -48,7 +50,7 @@ const deleteServiceRequest = async (req, res) => {
     const id = req.params.id;
   
     try {
-        const query = 'DELETE FROM service_request WHERE vehicle_id = ?';
+        const query = 'DELETE FROM service_request WHERE request_id = ?';
         const result = await dbQuery(query, [id]);
     
         if (result.affectedRows === 0) {
@@ -66,7 +68,7 @@ const getServiceRequestById = async (req, res) => {
 
     try {
         //Modify this make it JOIN with vehicle and service 
-        const query = `SELECT * FROM service_request WHERE id = ?`;
+        const query = `SELECT * FROM service_request WHERE request_id = ?`;
         const results = await dbQuery(query, [id]);
 
         if (results.length === 0) {
@@ -91,26 +93,38 @@ const getServiceRequests = async (req, res) => {
         if (isNaN(validatedLimit) || validatedLimit <= 0) {
             return res.status(400).json({ error: 'Invalid limit value' });
         }
-        const query = `
+        let query = `
             SELECT 
                 v.name as vehicle_name,
                 v.model,
                 v.plate_number,
                 s.name as service_type,
                 s.price,
-                sr.preferred_schedule
+                sr.request_id,
+                sr.preferred_schedule,
+                sr.request_status,
+                ${!userId ? `u.name as requested_by` : ""}
             FROM 
                 service_request sr
             JOIN 
                 vehicle v ON sr.vehicle_id = v.vehicle_id
             JOIN 
                 service s ON sr.service_id = s.service_id
-            WHERE
-                sr.user_id = ?
-            LIMIT ?
+            ${!userId ? 
+                ' JOIN user u ON sr.user_id = u.user_id'
+                : ""
+            }
         `;
 
-        const requests = await dbQuery(query, [userId, validatedLimit]);
+        if (userId) {
+            query += ` WHERE
+                        sr.user_id = ?`
+        }
+
+        query += ` LIMIT ?`
+
+        const dbVariables= userId ?  [userId, validatedLimit] : [validatedLimit]
+        const requests = await dbQuery(query, dbVariables);
         let finalResults =  {
             requests,
         }
@@ -143,4 +157,5 @@ module.exports = {
     updateServiceRequest,
     getServiceRequestById,
     getServiceRequests,
+    deleteServiceRequest,
 };

@@ -69,7 +69,7 @@ const getUserByEmail = async (req, res) => {
     const email = req.params.email;
 
     try {
-        const query = 'SELECT user_id, name, email, role FROM user WHERE email = ?';
+        const query = 'SELECT user_id, name, email, role, phone_num FROM user WHERE email = ?';
         const results = await dbQuery(query, [email]);
 
         if (results.length === 0) {
@@ -85,17 +85,25 @@ const getUserByEmail = async (req, res) => {
 
 const updateUser = async (req, res) => {
     const userId = req.params.user_id;
-    const { name, email, role } = req.body;
+    const { name, email, role, phone_num } = req.body;
   
     try {
-      const query = 'UPDATE user SET name = ?, email = ?, role = ?, updated_at = NOW() WHERE user_id = ?';
-      const result = await dbQuery(query, [name, email, role, userId]);
-  
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-  
-      res.json({ message: 'User updated successfully' });
+
+        const emailCheckQuery = 'SELECT user_id FROM user WHERE email = ? AND user_id != ?';
+        const emailCheckResult = await dbQuery(emailCheckQuery, [email, userId]);
+
+        if (emailCheckResult.length > 0) {
+            return res.status(400).json({ error: 'Email already exists' });
+        }
+
+        const query = 'UPDATE user SET name = ?, email = ?, role = ?, phone_num =?, updated_at = NOW() WHERE user_id = ?';
+        const result = await dbQuery(query, [name, email, role, phone_num, userId]);
+    
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+    
+        res.json({ message: 'User updated successfully' });
     } catch (err) {
       console.error('Error updating user:', err.message);
       res.status(500).json({ error: 'Error updating user' });
