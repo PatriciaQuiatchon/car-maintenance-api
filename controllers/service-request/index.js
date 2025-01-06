@@ -102,8 +102,8 @@ const getServiceRequests = async (req, res) => {
                 s.price,
                 sr.request_id,
                 sr.preferred_schedule,
-                sr.request_status,
-                ${!userId ? `u.name as requested_by` : ""}
+                sr.request_status
+                ${!userId ? `, u.name as requested_by` : ""}
             FROM 
                 service_request sr
             JOIN 

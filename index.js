@@ -8,6 +8,7 @@ const authRoutes = require('./routers/auth');
 const vehicleRoutes = require('./routers/vehicle');
 const serviceRoutes = require('./routers/service');
 const requestRoutes = require('./routers/request');
+const historyRoutes = require('./routers/history');
 
 // const passport = require('passport');
 // const GoogleStrategy = require('passport-google-oauth20').Strategy;
@@ -76,11 +77,10 @@ app.use('/api', authRoutes)
 app.use('/api', vehicleRoutes)
 app.use('/api', serviceRoutes)
 app.use('/api', requestRoutes)
-
+app.use('/api', historyRoutes)
 app.use(express.json());
 
 app.get('/', (req, res) => {
-  console.log('NODE_ENV:', process.env.NODE_ENV);
     res.json({ message: 'Successful!' });
 });
 

@@ -17,6 +17,8 @@ const createHistory = async (req, res) => {
 
 
 const getAllServiceHistory = async (req, res) => {
+    const id = req.params.id;
+
     const { orderBy = 'created_at', direction = 'ASC', limit = 25 } = req.query;
 
     try {
@@ -27,31 +29,34 @@ const getAllServiceHistory = async (req, res) => {
         }
         const query = `
         SELECT 
-            u.user_name,
-            c.car_name,
-            c.car_plate_number,
-            s.service_name,
-            s.service_amount,
-            sr.service_requested_date
+            u.name as user_name,
+            c.name as car_name,
+            c.plate_number,
+            s.name as service_name,
+            s.price,
+            h.service_date,
+            h.service_amount,
+            sr.updated_at
         FROM 
-            history h
+            service_history h
         JOIN 
             user u ON h.user_id = u.user_id
         JOIN 
-            car c ON h.car_id = c.car_id
+            vehicle c ON h.vehicle_id = c.vehicle_id
         JOIN 
-            service s ON h.service_id = s.service_id
+            service s ON h.request_id = s.service_id
         JOIN 
-            service_requested sr ON h.service_requested_id = sr.service_requested_id
+            service_request sr ON h.service_id = sr.request_id
+        
+        ${id ? ` WHERE h.user_id = ?` : ''}
+        
+        ORDER BY ? ?
+        
         LIMIT ?
     `;
-
-        const query1 = `
-            SELECT * FROM service_history
-            ORDER BY ${orderBy} ${direction}
-            LIMIT ?
-            `;
-        const results = await dbQuery(query, [validatedLimit]);
+        const defaultValues = [orderBy, direction, validatedLimit]
+        const values = id ? [id, ...defaultValues] : defaultValues
+        const results = await dbQuery(query, values);
 
         res.json(results);
     } catch (err) {
