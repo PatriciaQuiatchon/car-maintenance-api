@@ -1,4 +1,5 @@
 const dbQuery = require("../../db/db");
+const dayjs = require('dayjs');
 
 const fetchServices = async (orderBy, direction, validatedLimit) => {
     try {
@@ -13,6 +14,41 @@ const fetchServices = async (orderBy, direction, validatedLimit) => {
     }
 }
 
+const createHistory = async (data, id) => {
+    const {
+        user_id, vehicle_id, service_id, amount, preferred_schedule
+    } = data
+    const formattedDate = dayjs(preferred_schedule).format('YYYY-MM-DD HH:mm:ss');
+    
+    try {
+        const query = `INSERT INTO service_history
+                        (history_id, request_id, user_id, vehicle_id, service_id, service_date, service_amount, created_at) 
+                        VALUES (UUID(), ?, ?, ?, ?, NOW(), ?, NOW())`;
+        await dbQuery(query, [id, user_id, vehicle_id, service_id, amount]);
+
+    } catch (err) {
+        throw new Error(`Error creating history: ${err.message}`);
+    } 
+}
+
+const changeStatusRepo = async (status, id) => {
+    
+    try {
+        const query = `UPDATE service_request SET request_status = ?, updated_at = NOW() WHERE request_id = ?`;
+        const result = await dbQuery(query, [status, id]);
+  
+      if (result.affectedRows === 0) {
+       return 'Service request not found'
+      }
+      return 'Service request changed status successfully'
+  
+    } catch (err) {
+        throw new Error(`Error change status: ${err.message}`);
+    }
+}
+
 module.exports = {
     fetchServices,
+    createHistory,
+    changeStatusRepo,
 }

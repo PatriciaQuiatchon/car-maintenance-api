@@ -19,7 +19,7 @@ const createHistory = async (req, res) => {
 const getAllServiceHistory = async (req, res) => {
     const id = req.params.id;
 
-    const { orderBy = 'created_at', direction = 'ASC', limit = 25 } = req.query;
+    const { orderBy = 'created_at', direction = 'ASC', limit = 50 } = req.query;
 
     try {
         

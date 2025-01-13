@@ -1,7 +1,7 @@
 const dbQuery = require("../../db/db");
 const dayjs = require('dayjs');
 
-const { fetchServices } = require("../../repository/service");
+const { fetchServices, changeStatusRepo, createHistory } = require("../../repository/service");
 const { fetchUserByRole } = require("../../repository/user");
 const { fetchVehicleByUser } = require("../../repository/vehicle");
 
@@ -96,14 +96,16 @@ const getServiceRequests = async (req, res) => {
         let query = `
             SELECT 
                 v.name as vehicle_name,
+                v.vehicle_id as vehicle_id,
                 v.model,
                 v.plate_number,
                 s.name as service_type,
+                s.service_id as service_id,
                 s.price,
                 sr.request_id,
                 sr.preferred_schedule,
                 sr.request_status
-                ${!userId ? `, u.name as requested_by` : ""}
+                ${!userId ? `, u.user_id as requested_by_id, u.name as requested_by` : ""}
             FROM 
                 service_request sr
             JOIN 
@@ -151,6 +153,24 @@ const getServiceRequests = async (req, res) => {
     }
 };
 
+const changeStatus = async (req, res) => {
+    const requestId = req.params.id;
+    const { request_status } = req.body;
+    
+    try {
+        if (request_status === "DONE") {
+            await createHistory(req.body, requestId)
+        }
+        await changeStatusRepo(request_status, requestId)
+
+        res.json({ message: 'Service request changed status successfully' });
+
+    } catch (err) {
+        console.error('Error changing status:', err.message);
+        res.status(500).json({ error: 'Error changing status' });
+    }
+
+}
   
 module.exports = { 
     createServiceRequest,
@@ -158,4 +178,5 @@ module.exports = {
     getServiceRequestById,
     getServiceRequests,
     deleteServiceRequest,
+    changeStatus,
 };
