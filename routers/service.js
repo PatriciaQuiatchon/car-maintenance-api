@@ -11,7 +11,7 @@ const { authenticate } = require('../middleware/auth')
 // Routes
 //Users Routes
 router.get('/service/:id', authenticate, getService);
-router.get('/services', authenticate, getServices);
+router.get('/services', getServices);
 router.post('/service', authenticate, createService); 
 router.put('/service/:id', authenticate, updateService);
 router.delete('/service/:id', authenticate, deleteService); 
