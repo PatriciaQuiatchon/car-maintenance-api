@@ -3,15 +3,15 @@ const { fetchVehicleByUser } = require("../../repository/vehicle/index");
 
 const registerVehicle = async (req, res) => {
     const userId = req.params.id
-    const { name, type, model, plate_number, } = req.body;
+    const { name, type, model, plate_number, year, } = req.body;
 
     try {
-        const query = `INSERT INTO vehicle (vehicle_id, user_id, name, type, model, plate_number, created_at, updated_at) 
-                        VALUES (UUID(), ?, ?, ?, ?, ?, NOW(), NOW())`;
-        const result = await dbQuery(query, [userId, name, type, model, plate_number]);
+        const query = `INSERT INTO vehicle (vehicle_id, user_id, name, type, model, year, plate_number, created_at, updated_at) 
+                        VALUES (UUID(), ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
+        const result = await dbQuery(query, [userId, name, type, model, year, plate_number]);
 
         res.status(201).json({ message: 'Vehicle registered successfully', userId: result.insertId });
-    } catch (err) {
+    } catch (err) {hasEditAccess
         console.error('Error creating Vehicle:', err.message);
         res.status(500).json({ error: 'Error creating Vehicle' });
     }
@@ -19,11 +19,11 @@ const registerVehicle = async (req, res) => {
 
 const updateVehicle = async (req, res) => {
     const vehicle_id = req.params.id;
-    const { name, type, model, plate_number } = req.body;
+    const { name, type, model, plate_number, year } = req.body;
   
     try {
-      const query = `UPDATE vehicle SET name = ?, type = ?, model = ?, plate_number = ?, updated_at = NOW() WHERE vehicle_id = ?`;
-      const result = await dbQuery(query, [name, type, model, plate_number, vehicle_id]);
+      const query = `UPDATE vehicle SET name = ?, type = ?, model = ?, year = ?, plate_number = ?, updated_at = NOW() WHERE vehicle_id = ?`;
+      const result = await dbQuery(query, [name, type, model, year, plate_number, vehicle_id]);
   
       if (result.affectedRows === 0) {
         return res.status(404).json({ error: 'User not found' });

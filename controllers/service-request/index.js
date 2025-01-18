@@ -85,7 +85,7 @@ const getServiceRequestById = async (req, res) => {
 const getServiceRequests = async (req, res) => {
     const userId = req.params.id
     const onlyRequest = req.query.onlyRequest
-    const { orderBy = 'created_at', direction = 'ASC', limit = 50 } = req.query;
+    const { orderBy = 'created_at', direction = 'ASC', limit = 50, status = "PENDING" } = req.query;
 
     try {
         
@@ -98,6 +98,7 @@ const getServiceRequests = async (req, res) => {
                 v.name as vehicle_name,
                 v.vehicle_id as vehicle_id,
                 v.model,
+                v.year,
                 v.plate_number,
                 s.name as service_type,
                 s.service_id as service_id,
@@ -116,16 +117,17 @@ const getServiceRequests = async (req, res) => {
                 ' JOIN user u ON sr.user_id = u.user_id'
                 : ""
             }
+            WHERE 
+                sr.request_status = ?
         `;
-
+        
         if (userId) {
-            query += ` WHERE
-                        sr.user_id = ?`
+            query += ` AND sr.user_id = ?`
         }
 
         query += ` LIMIT ?`
 
-        const dbVariables= userId ?  [userId, validatedLimit] : [validatedLimit]
+        const dbVariables= userId ?  [status, userId, validatedLimit] : [status, validatedLimit]
         const requests = await dbQuery(query, dbVariables);
         let finalResults =  {
             requests,
@@ -161,9 +163,14 @@ const changeStatus = async (req, res) => {
         if (request_status === "DONE") {
             await createHistory(req.body, requestId)
         }
-        await changeStatusRepo(request_status, requestId)
-
-        res.json({ message: 'Service request changed status successfully' });
+        const response = await changeStatusRepo(request_status, requestId)
+        if(response === "Service request not found") {
+            res.status(404).json({ error: response });
+        } else if( response === "Service request changed status successfully" ){
+            res.json({ message: 'Service request changed status successfully' });
+        } else {
+            res.status(400).json({ error: "Error changing status" });
+        }
 
     } catch (err) {
         console.error('Error changing status:', err.message);

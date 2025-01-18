@@ -9,6 +9,7 @@ const vehicleRoutes = require('./routers/vehicle');
 const serviceRoutes = require('./routers/service');
 const requestRoutes = require('./routers/request');
 const historyRoutes = require('./routers/history');
+const dashboardRoutes = require('./routers/dashboard');
 
 // const passport = require('passport');
 // const GoogleStrategy = require('passport-google-oauth20').Strategy;
@@ -78,6 +79,7 @@ app.use('/api', vehicleRoutes)
 app.use('/api', serviceRoutes)
 app.use('/api', requestRoutes)
 app.use('/api', historyRoutes)
+app.use('/api', dashboardRoutes)
 app.use(express.json());
 
 app.get('/', (req, res) => {
