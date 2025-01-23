@@ -189,7 +189,7 @@ const changeStatus = async (req, res) => {
 
     } catch (err) {
         console.error('Error changing status:', err.message);
-        res.status(500).json({ error: 'Error changing status' });
+        res.status(500).json({ error: `Error changing status ${err.message}` });
     }
 
 }
