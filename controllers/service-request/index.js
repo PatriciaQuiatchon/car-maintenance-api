@@ -6,7 +6,7 @@ const { fetchUserByRole } = require("../../repository/user");
 const { fetchVehicleByUser } = require("../../repository/vehicle");
 
 const createServiceRequest = async (req, res) => {
-    const userId = req.params.id;
+    const userId = req.user.user_id;
     const { service_id, vehicle_id, preferred_schedule, mechanic_id, note } = req.body;
 
     try {
@@ -83,69 +83,84 @@ const getServiceRequestById = async (req, res) => {
 };
 
 const getServiceRequests = async (req, res) => {
-    const userId = req.params.id
-    const onlyRequest = req.query.onlyRequest
+    let userId;
+    const role = req.user.role;
+    if (role === "customer") {
+        userId = req.user.user_id;
+    }
+    const onlyRequest = req.query.onlyRequest;
     const { orderBy = 'created_at', direction = 'ASC', limit = 50, status = "PENDING" } = req.query;
 
     try {
-        
         const validatedLimit = parseInt(limit, 10);
         if (isNaN(validatedLimit) || validatedLimit <= 0) {
             return res.status(400).json({ error: 'Invalid limit value' });
         }
+
+        // Query to fetch service requests
         let query = `
             SELECT 
-                v.name as vehicle_name,
-                v.vehicle_id as vehicle_id,
+                sr.request_id,
+                sr.preferred_schedule,
+                sr.request_status,
+                sr.service_id AS service_ids, -- Comma-separated service IDs
+                v.name AS vehicle_name,
+                v.vehicle_id,
                 v.model,
                 v.year,
                 v.plate_number,
-                s.name as service_type,
-                s.service_id as service_id,
-                s.price,
-                sr.request_id,
-                sr.preferred_schedule,
-                sr.request_status
-                ${!userId ? `, u.user_id as requested_by_id, u.name as requested_by` : ""}
+                s.service_id,
+                s.name AS service_name,
+                s.price
+                ${!userId ? `, u.user_id AS requested_by_id, u.name AS requested_by` : ""}
             FROM 
                 service_request sr
             JOIN 
                 vehicle v ON sr.vehicle_id = v.vehicle_id
             JOIN 
-                service s ON sr.service_id = s.service_id
+                service s ON FIND_IN_SET(s.service_id, sr.service_id) > 0 -- Match each service_id
             ${!userId ? 
-                ' JOIN user u ON sr.user_id = u.user_id'
+                'JOIN user u ON sr.user_id = u.user_id' 
                 : ""
             }
             WHERE 
                 sr.request_status = ?
         `;
-        
+
+        // Filter by user ID if available
         if (userId) {
-            query += ` AND sr.user_id = ?`
+            query += ` AND sr.user_id = ?`;
         }
 
-        query += ` LIMIT ?`
+        // Add ordering and limit
+        query += ` ORDER BY sr.${orderBy} ${direction} LIMIT ?`;
 
-        const dbVariables= userId ?  [status, userId, validatedLimit] : [status, validatedLimit]
+        // Prepare the query variables
+        const dbVariables = [
+            status,
+            ...(userId ? [userId] : []),
+            validatedLimit,
+        ];
+
+        // Execute the query to fetch service requests
         const requests = await dbQuery(query, dbVariables);
-        let finalResults =  {
-            requests,
-        }
-        if (onlyRequest !== "true") {
 
-            const services = await fetchServices(orderBy, "ASC", validatedLimit)
-    
-            const mechanics = await fetchUserByRole(orderBy, "ASC", "mechanic", validatedLimit)
-    
-            const vehicles = await fetchVehicleByUser(orderBy, direction, userId, validatedLimit)
+        let finalResults = {
+            requests,
+        };
+
+        // Fetch additional data (services, mechanics, and vehicles) only if `onlyRequest` is not true
+        if (onlyRequest !== "true") {
+            const services = await fetchServices(orderBy, "ASC", validatedLimit);
+            const mechanics = await fetchUserByRole(orderBy, "ASC", "mechanic", validatedLimit);
+            const vehicles = await fetchVehicleByUser(orderBy, direction, userId, validatedLimit);
 
             finalResults = {
                 ...finalResults,
                 services,
-                mechanics, 
-                vehicles
-            }
+                mechanics,
+                vehicles,
+            };
         }
 
         res.json(finalResults);

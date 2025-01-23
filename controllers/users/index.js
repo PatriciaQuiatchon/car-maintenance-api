@@ -110,6 +110,41 @@ const updateUser = async (req, res) => {
     }
   };
 
+  
+const changePassword = async (req, res) => {
+    const email = req.user.email;
+    const user_id = req.user.user_id;
+    const { old_password, new_password } = req.body;
+  
+    try {
+
+        const userQuery = 'SELECT * FROM user WHERE email = ?';
+        const user = await dbQuery(userQuery, [email]);
+
+        if (user.length < 0) {
+            return res.status(400).json({ error: 'User not found' });
+        }
+
+        const isValidPassword = await bcrypt.compare(old_password, user[0].password);
+        if (!isValidPassword) {
+            return res.status(400).json({ error: 'Invalid old password' });
+        }
+        const hashedPassword = await bcrypt.hash(new_password, 10);
+        
+        const query = 'UPDATE user SET password = ?, updated_at = NOW() WHERE user_id = ?';
+        const result = await dbQuery(query, [hashedPassword, user_id]);
+    
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Error on changing the password' });
+        }
+    
+        res.json({ message: 'Password changed successfully' });
+    } catch (err) {
+      console.error('Error updating user:', err.message);
+      res.status(500).json({ error: 'Error updating user' });
+    }
+  };
+
 // Delete a user
 const deleteUser = async (req, res) => {
     const userId = req.params.user_id;
@@ -135,4 +170,5 @@ module.exports = {
     getUsersByRole,
     updateUser,
     deleteUser,
+    changePassword,
 };
