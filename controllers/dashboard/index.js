@@ -30,10 +30,8 @@ const getDashboardData = async (req, res) => {
             FROM 
                 service_history h
             JOIN 
-                service s ON h.service_id = s.service_id
-
+                service s ON FIND_IN_SET(s.name, REPLACE(h.service_id, ', ', ',')) > 0  -- Split the multiple service_ids
             ${userId ? `WHERE h.user_id = ?` : ''}
-
             GROUP BY 
                 s.name;
         `;
@@ -45,9 +43,10 @@ const getDashboardData = async (req, res) => {
         if (results.length === 0) {
             results = []
         }
+
         res.json({
             history: results,
-            request: requestResults
+            request: requestResults,
         });
     } catch (err) {
         console.error('Error fetching data:', err.message);
@@ -55,6 +54,39 @@ const getDashboardData = async (req, res) => {
     }
 };
 
+const getDashboardSales = async (req, res) => {
+    const {type} = req.query
+    try {
+        let query;
+
+        if (type === "week") {
+            query = `
+                SELECT SUM(CONVERT(service_amount, DECIMAL)) AS total_sales, WEEK(created_at) AS week_number, YEAR(created_at) AS year
+                FROM service_history
+                GROUP BY year, week_number;
+            `;
+        } else if (type === "month") {
+            query = `
+                SELECT SUM(CONVERT(service_amount, DECIMAL)) AS total_sales,  DATE_FORMAT(created_at, '%b') AS month_name, YEAR(created_at) AS year
+                FROM service_history
+                GROUP BY year, month_name;
+            `
+        } else {
+            query = `
+                SELECT SUM(CONVERT(service_amount, DECIMAL)) AS total_sales, YEAR(created_at) AS year
+                FROM service_history
+                GROUP BY year;
+            `;
+        }
+        const totalSales = await dbQuery(query);
+
+        res.json({totalSales})
+    } catch (err) {
+        res.status(500).json({ error: 'Error fetching data' });
+    }
+}
+
 module.exports = {
     getDashboardData,
+    getDashboardSales,
 }

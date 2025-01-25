@@ -2,10 +2,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const dbQuery = require('../../db/db');
 const { generateToken } = require('../../middleware/auth');
-const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
-const brevo = require('@getbrevo/brevo');
-const SibApiV3Sdk = require('sib-api-v3-sdk');
 const axios = require('axios');
 
 // Load environment-specific config
@@ -40,20 +37,14 @@ const register = async (req, res) => {
         const query = 'INSERT INTO user (user_id, name, email, password, role, is_verified, verification_token, created_at, updated_at) VALUES (UUID(), ?, ?, ?, ?, ?, ?, NOW(), NOW())';
         await dbQuery(query, [name, email, hashedPassword, "customer", 0, verificationToken]);
 
-        const transporter = nodemailer.createTransport(transportData);
         const verificationLink = `${process.env.BASE_URL}verify?token=${verificationToken}`;
-        const mailOptions = {
-            from: process.env.EMAIL,
-            to: email,
-            subject: 'Verify Your Email Address',
-            html: `<p>Hi ${name},</p>
+       
+        const htmlContent = `<p>Hi ${name},</p>
                    <p>Thank you for registering. Please verify your email by clicking the link below:</p>
                    <a href="${verificationLink}">Verify Email</a>
                    <p>If you did not request this, please ignore this email.</p>`
-        };
-
-        await transporter.sendMail(mailOptions);
-
+        // await transporter.sendMail(mailOptions);
+        sendEmail(email, name, 'Verify Your Email Address', htmlContent)
         res.status(201).json({ message: 'User registered successfully' });
 
     } catch (err) {
@@ -214,4 +205,4 @@ const googleAuth = async (profile) => {
   }
 };
 
-module.exports = { register, login, googleAuth, verifyEmail,forgotPassword, resetPassword };
+module.exports = { register, login, googleAuth, verifyEmail, forgotPassword, resetPassword, sendEmail };

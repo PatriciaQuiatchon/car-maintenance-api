@@ -32,8 +32,8 @@ const getAllServiceHistory = async (req, res) => {
             u.name as user_name,
             c.name as car_name,
             c.plate_number,
-            s.name as service_name,
-            s.price as amount,
+            h.service_id as services,
+            sr.service_amount as amount,
             h.service_date as date,
             h.service_amount,
             sr.updated_at
@@ -43,8 +43,6 @@ const getAllServiceHistory = async (req, res) => {
             user u ON h.user_id = u.user_id
         JOIN 
             vehicle c ON h.vehicle_id = c.vehicle_id
-        JOIN 
-            service s ON h.service_id = s.service_id
         JOIN 
             service_request sr ON h.request_id = sr.request_id
         

@@ -16,15 +16,14 @@ const fetchServices = async (orderBy, direction, validatedLimit) => {
 
 const createHistory = async (data, id) => {
     const {
-        user_id, vehicle_id, service_id, amount, preferred_schedule
+        user_id, vehicle_id, price, service_type
     } = data
-    const formattedDate = dayjs(preferred_schedule).format('YYYY-MM-DD HH:mm:ss');
     
     try {
         const query = `INSERT INTO service_history
                         (history_id, request_id, user_id, vehicle_id, service_id, service_date, service_amount, created_at) 
                         VALUES (UUID(), ?, ?, ?, ?, NOW(), ?, NOW())`;
-        await dbQuery(query, [id, user_id, vehicle_id, service_id, amount]);
+        await dbQuery(query, [id, user_id, vehicle_id, service_type, price]);
 
     } catch (err) {
         throw new Error(`Error creating history: ${err.message}`);
