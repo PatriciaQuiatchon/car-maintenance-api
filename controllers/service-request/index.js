@@ -8,16 +8,15 @@ const { sendEmail } = require("../auth");
 
 const createServiceRequest = async (req, res) => {
     const userId = req.user.user_id;
-    const { service_id, vehicle_id, preferred_schedule, mechanic_id, note, service_amount } = req.body;
+    const { service_id, vehicle_id, preferred_schedule, mechanic_id, note } = req.body;
 
     try {
-
         const formattedDate = dayjs(preferred_schedule).format('YYYY-MM-DD HH:mm:ss');
 
         const query = `INSERT INTO service_request 
-                        (request_id, user_id, vehicle_id, service_id, mechanic_id, preferred_schedule, notes, service_amount, created_at, updated_at) 
-                        VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
-        await dbQuery(query, [userId, vehicle_id, service_id, mechanic_id, formattedDate, note, service_amount]);
+                        (request_id, user_id, vehicle_id, service_id, mechanic_id, preferred_schedule, notes, created_at, updated_at) 
+                        VALUES (UUID(), ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
+        await dbQuery(query, [userId, vehicle_id, service_id, mechanic_id, formattedDate, note]);
 
         res.status(201).json({ message: 'Service requested created successfully' });
     } catch (err) {
@@ -35,7 +34,7 @@ const updateServiceRequest = async (req, res) => {
         const formattedDate = dayjs(preferred_schedule).format('YYYY-MM-DD HH:mm:ss');
         let query;
         if (isCustomer) {
-            query = `UPDATE service_request SET service_id = ?, vehicle_id = ?, mechanic_id = ?, preferred_schedule = ?, service_amount = ?, updated_at = NOW() WHERE request_id = ?`;
+            query = `UPDATE service_request SET service_id = ?, vehicle_id = ?, mechanic_id = ?, preferred_schedule = ?, updated_at = NOW() WHERE request_id = ?`;
         } else {
             query = `UPDATE service_request SET notes = ?, image = ?, service_amount =?, updated_at = NOW() WHERE request_id = ?`;
         }

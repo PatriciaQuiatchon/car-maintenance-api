@@ -2,14 +2,14 @@ const dbQuery = require("../../db/db");
 const { fetchServices } = require("../../repository/service");
 
 const createService = async (req, res) => {
-    const { name, description, price } = req.body;
+    const { name, description, price, priceB } = req.body;
 
     try {
-        const query = `INSERT INTO service (service_id, name, description, price, created_at) 
-                        VALUES (UUID(), ?, ?, ?, NOW())`;
-        const result = await dbQuery(query, [name, description, price]);
+        const query = `INSERT INTO service (service_id, name, description, price, price_b, created_at) 
+                        VALUES (UUID(), ?, ?, ?, ?, NOW())`;
+        const result = await dbQuery(query, [name, description, price, priceB]);
 
-        res.status(201).json({ message: 'Service registered successfully', userId: result.insertId });
+        res.status(201).json({ message: 'Service created successfully', userId: result.insertId });
     } catch (err) {
         console.error('Error creating service:', err.message);
         res.status(500).json({ error: 'Error creating service' });
@@ -18,12 +18,12 @@ const createService = async (req, res) => {
 
 const updateService = async (req, res) => {
     const serviceId = req.params.id;
-    const { name, description, price } = req.body;
+    const { name, description, price, price_b } = req.body;
   
     try {
-      const query = `UPDATE service SET name = ?, description = ?, price = ? 
+      const query = `UPDATE service SET name = ?, description = ?, price = ?, price_b = ?
                         WHERE service_id = ?`;
-      const result = await dbQuery(query, [name, description, price, serviceId]);
+      const result = await dbQuery(query, [name, description, price, price_b, serviceId]);
   
       if (result.affectedRows === 0) {
         return res.status(404).json({ error: 'Service not found' });
