@@ -36,7 +36,8 @@ const getAllServiceHistory = async (req, res) => {
             sr.service_amount as amount,
             h.service_date as date,
             h.service_amount,
-            sr.updated_at
+            sr.updated_at,
+            h.created_at
         FROM 
             service_history h
         JOIN 

@@ -66,7 +66,7 @@ const login = async (req, res) => {
 
         const isValidPassword = await bcrypt.compare(password, user[0].password);
         if (!isValidPassword) {
-            return res.status(400).json({ error: 'Invalid email or password' });
+            return res.status(400).json('Invalid email or password');
         }
 
         // Generate token

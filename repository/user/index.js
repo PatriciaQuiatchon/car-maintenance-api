@@ -5,7 +5,7 @@ const fetchUserByRole = async (orderBy, direction, role, validatedLimit) => {
     try {
         
         const query = `
-        SELECT user_id, name, email, role FROM user
+        SELECT user_id, name, email, role, address, phone_num FROM user
         WHERE role = ?
         ORDER BY ${orderBy} ${direction}
         LIMIT ?
