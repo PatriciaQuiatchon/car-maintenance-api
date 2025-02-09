@@ -8,15 +8,15 @@ const { sendEmail } = require("../auth");
 
 const createServiceRequest = async (req, res) => {
     const userId = req.user.user_id;
-    const { service_id, vehicle_id, preferred_schedule, mechanic_id, note } = req.body;
+    const { service_id, vehicle_id, preferred_schedule, mechanic_id, note, user_notes } = req.body;
 
     try {
         const formattedDate = dayjs(preferred_schedule).format('YYYY-MM-DD HH:mm:ss');
 
         const query = `INSERT INTO service_request 
-                        (request_id, user_id, vehicle_id, service_id, mechanic_id, preferred_schedule, notes, created_at, updated_at) 
-                        VALUES (UUID(), ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
-        await dbQuery(query, [userId, vehicle_id, service_id, mechanic_id, formattedDate, note]);
+                        (request_id, user_id, vehicle_id, service_id, mechanic_id, preferred_schedule, notes, user_notes, created_at, updated_at) 
+                        VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
+        await dbQuery(query, [userId, vehicle_id, service_id, mechanic_id, formattedDate, note, user_notes]);
 
         res.status(201).json({ message: 'Service requested created successfully' });
     } catch (err) {
@@ -27,14 +27,14 @@ const createServiceRequest = async (req, res) => {
 
 const updateServiceRequest = async (req, res) => {
     const requestId = req.params.id;
-    const { service_id, vehicle_id, preferred_schedule, mechanic_id, notes, service_amount, image } = req.body;
+    const { service_id, vehicle_id, preferred_schedule, mechanic_id, notes, service_amount, image, user_notes } = req.body;
     
     const isCustomer = req.user.role == "customer"
     try {
         const formattedDate = dayjs(preferred_schedule).format('YYYY-MM-DD HH:mm:ss');
         let query;
         if (isCustomer) {
-            query = `UPDATE service_request SET service_id = ?, vehicle_id = ?, mechanic_id = ?, preferred_schedule = ?, updated_at = NOW() WHERE request_id = ?`;
+            query = `UPDATE service_request SET service_id = ?, vehicle_id = ?, mechanic_id = ?, preferred_schedule = ?, user_notes = ?, updated_at = NOW() WHERE request_id = ?`;
         } else {
             query = `UPDATE service_request SET notes = ?, image = ?, service_amount =?, updated_at = NOW() WHERE request_id = ?`;
         }
@@ -42,7 +42,7 @@ const updateServiceRequest = async (req, res) => {
         let queryValue
 
         if (isCustomer){
-            queryValue = [service_id, vehicle_id, mechanic_id, formattedDate, service_amount, requestId]
+            queryValue = [service_id, vehicle_id, mechanic_id, formattedDate, user_notes, requestId]
         } else {
             queryValue = [notes, image, service_amount, requestId]
             if (notes){
@@ -53,7 +53,6 @@ const updateServiceRequest = async (req, res) => {
                     ON user.user_id = service_request.user_id 
                     WHERE service_request.request_id = ?`;
                 const selectData = await dbQuery(selectQuery, [requestId]);
-                console.log({selectData})
 
                 if (selectData.length > 0) {
                     const link = `${process.env.BASE_URL}repair-request`;
@@ -71,15 +70,14 @@ const updateServiceRequest = async (req, res) => {
         }
 
         const result = await dbQuery(query, queryValue);
-  
       if (result.affectedRows === 0) {
-        return res.status(404).json({ error: 'Service request not found' });
+        return res.status(404).json('Service request not found');
       }
   
       res.json({ message: 'Service request updated successfully' });
     } catch (err) {
       console.error('Error updating Service request:', err.message);
-      res.status(500).json({ error: 'Error updating Service request' });
+      res.status(500).json('Error updating Service request');
     }
 };
 
@@ -140,6 +138,8 @@ const getServiceRequests = async (req, res) => {
                 sr.request_id,
                 sr.preferred_schedule,
                 sr.request_status,
+                sr.notes,
+                sr.user_notes,
                 sr.service_amount as price,
                 sr.service_id AS service_ids, -- Comma-separated service IDs
                 v.name AS vehicle_name,
@@ -227,7 +227,7 @@ const changeStatus = async (req, res) => {
             await createHistory(req.body, requestId)
                 if (selectData.length > 0) {
                     htmlContent = `<html><body>
-                    <p>Hi ${selectData[0].userName},</p>
+                    <p>Hi</p>
                     <p>We are pleased to inform you that your repair request has been successfully completed.</p>
                     <a href="${link}">View Details</a>
                     </body></html>`;
@@ -235,7 +235,7 @@ const changeStatus = async (req, res) => {
         } else if (request_status === "PENDING") {
             if (selectData.length > 0) {
                 htmlContent = `<html><body>
-                <p>Hi ${selectData[0].userName},</p>
+                <p>Hi</p>
                 <p>We are pleased to inform you that your repair request has been changed to pending.</p>
                 <a href="${link}">View Details</a>
                 </body></html>`;
@@ -243,7 +243,7 @@ const changeStatus = async (req, res) => {
         } else {
             if (selectData.length > 0) {
                 htmlContent = `<html><body>
-                <p>Hi ${selectData[0].userName},</p>
+                <p>Hi</p>
                 <p>We are pleased to inform you that your repair request has been changed to in progress.</p>
                 <a href="${link}">View Details</a>
                 </body></html>`;

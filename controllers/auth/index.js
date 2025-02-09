@@ -44,7 +44,7 @@ const register = async (req, res) => {
 
         const verificationLink = `${process.env.BASE_URL}verify?token=${verificationToken}`;
        
-        const htmlContent = `<p>Hi ${name},</p>
+        const htmlContent = `<p>Hi</p>
                    <p>Thank you for registering. Please verify your email by clicking the link below:</p>
                    <a href="${verificationLink}">Verify Email</a>
                    <p>If you did not request this, please ignore this email.</p>`
