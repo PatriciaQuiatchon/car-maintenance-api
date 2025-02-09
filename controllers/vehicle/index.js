@@ -75,7 +75,7 @@ const getVehicleById = async (req, res) => {
 
 const getVehiclesByUser = async (req, res) => {
     const userId = req.params.id;
-    const { orderBy = 'created_at', direction = 'ASC', limit = 25 } = req.query;
+    const { orderBy = 'created_at', direction = 'ASC', limit = 100 } = req.query;
 
     try {
         

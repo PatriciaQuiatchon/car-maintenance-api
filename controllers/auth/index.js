@@ -21,12 +21,17 @@ const transportData = {
 }
 
 const register = async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, validId, validIdNumber } = req.body;
 
     try {
         const existingUser = await dbQuery('SELECT * FROM user WHERE email = ?', [email]);
         if (existingUser.length > 0) {
-        return res.status(400).json({ error: 'Email already exists' });
+        return res.status(400).json('Email already exists' );
+        }
+
+        const existingId = await dbQuery('SELECT * FROM user WHERE validIdNumber = ?', [validIdNumber]);
+        if (existingId.length > 0) {
+        return res.status(400).json('ID number should be unique');
         }
 
         // Hash the password
@@ -34,8 +39,8 @@ const register = async (req, res) => {
         const verificationToken = crypto.randomBytes(32).toString('hex');
 
         // Insert new user
-        const query = 'INSERT INTO user (user_id, name, email, password, role, is_verified, verification_token, created_at, updated_at) VALUES (UUID(), ?, ?, ?, ?, ?, ?, NOW(), NOW())';
-        await dbQuery(query, [name, email, hashedPassword, "customer", 0, verificationToken]);
+        const query = 'INSERT INTO user (user_id, name, email, password, validId, validIdNumber, role, is_verified, verification_token, created_at, updated_at) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())';
+        await dbQuery(query, [name, email, hashedPassword, validId, validIdNumber, "customer", 0, verificationToken]);
 
         const verificationLink = `${process.env.BASE_URL}verify?token=${verificationToken}`;
        
@@ -49,7 +54,7 @@ const register = async (req, res) => {
 
     } catch (err) {
       console.log({err})
-        res.status(500).json({ error: err });
+        res.status(500).json(err);
     }
 };
 
@@ -61,7 +66,7 @@ const login = async (req, res) => {
         const user = await dbQuery('SELECT * FROM user WHERE email = ?', [email]);
 
         if (user.length === 0) {
-            return res.status(400).json({ error: 'Invalid email or password' });
+            return res.status(400).json('Invalid email or password');
         }
 
         const isValidPassword = await bcrypt.compare(password, user[0].password);
@@ -77,7 +82,7 @@ const login = async (req, res) => {
         res.json({ message: 'Login successful', token, user: user[0] });
 
     } catch (err) {
-        res.status(500).json({ error:err });
+        res.status(500).json(err);
     }
 };
 
@@ -87,14 +92,14 @@ const verifyEmail = async (req, res) => {
   try {
       const user = await dbQuery('SELECT * FROM user WHERE verification_token = ?', [token]);
       if (user.length === 0) {
-          return res.status(400).json({ error: 'Invalid or expired token' });
+          return res.status(400).json('Invalid or expired token');
       }
 
       await dbQuery('UPDATE user SET is_verified = TRUE, verification_token = NULL WHERE verification_token = ?', [token]);
 
       res.status(200).json({ message: 'Email verified successfully. You can now log in.' });
   } catch (err) {
-      res.status(500).json({ error: err.message });
+      res.status(500).json(err.message);
   }
 };
 
@@ -104,7 +109,7 @@ const resetPassword = async (req, res) => {
     const { password } = req.body
     const user = await dbQuery('SELECT * FROM user WHERE reset_password_token = ?', [token]);
     if (user.length === 0) {
-        return res.status(400).json({ error: 'Invalid or expired token' });
+        return res.status(400).json('Invalid or expired token');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -113,7 +118,7 @@ const resetPassword = async (req, res) => {
 
     res.status(200).json({ message: 'Password changed successfully. You can now log in.' })
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json(err.message);
   }
 };
 

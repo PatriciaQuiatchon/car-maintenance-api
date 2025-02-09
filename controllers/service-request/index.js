@@ -253,16 +253,16 @@ const changeStatus = async (req, res) => {
         sendEmail(selectData[0].email, selectData[0].userName, "Repair Request Notification", htmlContent)
 
         if(response === "Service request not found") {
-            res.status(404).json({ error: response });
+            res.status(404).json(response);
         } else if( response === "Service request changed status successfully" ){
             res.json({ message: 'Service request changed status successfully' });
         } else {
-            res.status(400).json({ error: "Error changing status" });
+            res.status(400).json("Error changing status");
         }
 
     } catch (err) {
         console.error('Error changing status:', err.message);
-        res.status(500).json({ error: `Error changing status ${err.message}` });
+        res.status(500).json(`Error changing status ${err.message}`);
     }
 
 }

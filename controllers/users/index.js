@@ -3,7 +3,7 @@ const dbQuery = require("../../db/db");
 const { fetchUserByRole } = require("../../repository/user");
 
 const createUser = async (req, res) => {
-    const { name, email, password, role, address, phone_num } = req.body;
+    const { name, email, password, role, address, phone_num, validId, validIdNumber } = req.body;
 
     try {
         // Check if email already exists
@@ -11,19 +11,19 @@ const createUser = async (req, res) => {
         const existingUser = await dbQuery(checkEmailQuery, [email]);
 
         if (existingUser.length > 0) {
-        return res.status(400).json({ error: 'Email already exists' });
+        return res.status(400).json('Email already exists');
         }
 
             
         const hashedPassword = await bcrypt.hash(password, 10); // Hash the password with a salt
         
-        const query = 'INSERT INTO user (user_id, name, email, password, role, address, phone_num, created_at, updated_at) VALUES (UUID(), ?, ?, ?, ?, ?, ?, NOW(), NOW())';
-        const result = await dbQuery(query, [name, email, hashedPassword, role, address, phone_num]);
+        const query = 'INSERT INTO user (user_id, name, email, password, role, address, phone_num, validId, validIdNumber, created_at, updated_at) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())';
+        const result = await dbQuery(query, [name, email, hashedPassword, role, address, phone_num, validId, validIdNumber]);
 
         res.status(201).json({ message: 'User created successfully', userId: result.insertId });
     } catch (err) {
         console.error('Error creating user:', err.message);
-        res.status(500).json({ error: 'Error creating user' });
+        res.status(500).json('Error creating user');
     }
 };
 
@@ -68,7 +68,7 @@ const getUserByEmail = async (req, res) => {
     const email = req.params.email;
 
     try {
-        const query = 'SELECT user_id, name, email, role, phone_num FROM user WHERE email = ?';
+        const query = 'SELECT user_id, name, email, role, phone_num, validId, validIdNumber FROM user WHERE email = ?';
         const results = await dbQuery(query, [email]);
 
         if (results.length === 0) {
@@ -84,7 +84,7 @@ const getUserByEmail = async (req, res) => {
 
 const updateUser = async (req, res) => {
     const userId = req.params.user_id;
-    const { name, email, role, phone_num, address } = req.body;
+    const { name, email, role, phone_num, address, validId, validIdNumber } = req.body;
   
     try {
 
@@ -92,20 +92,20 @@ const updateUser = async (req, res) => {
         const emailCheckResult = await dbQuery(emailCheckQuery, [email, userId]);
 
         if (emailCheckResult.length > 0) {
-            return res.status(400).json({ error: 'Email already exists' });
+            return res.status(400).json('Email already exists');
         }
-        console.log({phone_num, address})
-        const query = 'UPDATE user SET name = ?, email = ?, role = ?, phone_num = ?, address = ?, updated_at = NOW() WHERE user_id = ?';
-        const result = await dbQuery(query, [name, email, role, phone_num, address, userId]);
-    
+
+        const query = 'UPDATE user SET name = ?, email = ?, role = ?, phone_num = ?, address = ?, validId = ?, validIdNumber = ?, updated_at = NOW() WHERE user_id = ?';
+        const result = await dbQuery(query, [name, email, role, phone_num, address, validId, validIdNumber, userId]);
+
         if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'User not found' });
+            return res.status(404).json('User not found');
         }
     
         res.json({ message: 'User updated successfully' });
     } catch (err) {
       console.error('Error updating user:', err.message);
-      res.status(500).json({ error: 'Error updating user' });
+      res.status(500).json('Error updating user');
     }
   };
 
@@ -121,12 +121,12 @@ const changePassword = async (req, res) => {
         const user = await dbQuery(userQuery, [email]);
 
         if (user.length < 0) {
-            return res.status(400).json({ error: 'User not found' });
+            return res.status(400).json('User not found');
         }
 
         const isValidPassword = await bcrypt.compare(old_password, user[0].password);
         if (!isValidPassword) {
-            return res.status(400).json({ error: 'Invalid old password' });
+            return res.status(400).json('Invalid old password');
         }
         const hashedPassword = await bcrypt.hash(new_password, 10);
         
@@ -134,13 +134,13 @@ const changePassword = async (req, res) => {
         const result = await dbQuery(query, [hashedPassword, user_id]);
     
         if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Error on changing the password' });
+            return res.status(404).json('Error on changing the password');
         }
     
         res.json({ message: 'Password changed successfully' });
     } catch (err) {
       console.error('Error updating user:', err.message);
-      res.status(500).json({ error: 'Error updating user' });
+      res.status(500).json('Error updating user');
     }
   };
 

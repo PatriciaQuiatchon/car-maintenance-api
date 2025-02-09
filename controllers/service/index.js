@@ -74,7 +74,7 @@ const getService = async (req, res) => {
 
 
 const getServices = async (req, res) => {
-    const { orderBy = 'created_at', direction = 'ASC', limit = 50 } = req.query;
+    const { orderBy = 'created_at', direction = 'ASC', limit = 100 } = req.query;
 
     try {
         

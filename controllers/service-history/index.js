@@ -19,7 +19,7 @@ const createHistory = async (req, res) => {
 const getAllServiceHistory = async (req, res) => {
     const id = req.params.id;
 
-    const { orderBy = 'created_at', direction = 'ASC', limit = 50 } = req.query;
+    const { orderBy = 'created_at', direction = 'ASC', limit = 100 } = req.query;
 
     try {
         
@@ -67,7 +67,7 @@ const getAllServiceHistory = async (req, res) => {
 
 const getServiceHistoryByUser = async (req, res) => {
     const userId = req.params.id;
-    const { orderBy = 'created_at', direction = 'ASC', limit = 25 } = req.query;
+    const { orderBy = 'created_at', direction = 'ASC', limit = 100 } = req.query;
 
     try {
         
@@ -94,7 +94,7 @@ const getServiceHistoryByUser = async (req, res) => {
 
 const getServiceHistoryByVehicle = async (req, res) => {
     const vehicle_id = req.params.id;
-    const { orderBy = 'created_at', direction = 'ASC', limit = 25 } = req.query;
+    const { orderBy = 'created_at', direction = 'ASC', limit = 100 } = req.query;
 
     try {
         
