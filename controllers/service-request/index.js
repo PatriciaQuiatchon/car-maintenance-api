@@ -36,7 +36,7 @@ const updateServiceRequest = async (req, res) => {
         if (isCustomer) {
             query = `UPDATE service_request SET service_id = ?, vehicle_id = ?, mechanic_id = ?, preferred_schedule = ?, user_notes = ?, updated_at = NOW() WHERE request_id = ?`;
         } else {
-            query = `UPDATE service_request SET notes = ?, image = ?, service_amount =?, updated_at = NOW() WHERE request_id = ?`;
+            query = `UPDATE service_request SET notes = ?, image = ?, service_amount =?, preferred_schedule = ?, updated_at = NOW() WHERE request_id = ?`;
         }
 
         let queryValue
@@ -44,7 +44,7 @@ const updateServiceRequest = async (req, res) => {
         if (isCustomer){
             queryValue = [service_id, vehicle_id, mechanic_id, formattedDate, user_notes, requestId]
         } else {
-            queryValue = [notes, image, service_amount, requestId]
+            queryValue = [notes, image, service_amount, formattedDate, requestId]
             if (notes){
                 const selectQuery = `
                     SELECT user.name as userName, user.email as email, service_request.* 
@@ -114,6 +114,25 @@ const getServiceRequestById = async (req, res) => {
     } catch (err) {
         console.error('Error fetching user by Service request:', err.message);
         res.status(500).json({ error: 'Error fetching Service request' });
+    }
+};
+  
+const getServiceRequestByUserId = async (req, res) => {
+    const id = req.params.id;
+
+    try {
+        //Modify this make it JOIN with vehicle and service 
+        const query = `SELECT * FROM service_request WHERE user_id = ?`;
+        const results = await dbQuery(query, [id]);
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Service requests not found' });
+        }
+
+        res.json(results);
+    } catch (err) {
+        console.error('Error fetching user by Service request:', err.message);
+        res.status(500).json('Error fetching Service request');
     }
 };
 
@@ -271,6 +290,7 @@ module.exports = {
     createServiceRequest,
     updateServiceRequest,
     getServiceRequestById,
+    getServiceRequestByUserId,
     getServiceRequests,
     deleteServiceRequest,
     changeStatus,

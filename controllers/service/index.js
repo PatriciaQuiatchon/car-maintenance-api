@@ -2,12 +2,12 @@ const dbQuery = require("../../db/db");
 const { fetchServices } = require("../../repository/service");
 
 const createService = async (req, res) => {
-    const { name, description, price, priceB } = req.body;
+    const { name, description, price, price_b } = req.body;
 
     try {
         const query = `INSERT INTO service (service_id, name, description, price, price_b, created_at) 
                         VALUES (UUID(), ?, ?, ?, ?, NOW())`;
-        const result = await dbQuery(query, [name, description, price, priceB]);
+        const result = await dbQuery(query, [name, description, price, price_b]);
 
         res.status(201).json({ message: 'Service created successfully', userId: result.insertId });
     } catch (err) {

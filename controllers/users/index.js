@@ -68,7 +68,7 @@ const getUserByEmail = async (req, res) => {
     const email = req.params.email;
 
     try {
-        const query = 'SELECT user_id, name, email, role, phone_num, validId, validIdNumber FROM user WHERE email = ?';
+        const query = 'SELECT user_id, name, image, email, role, phone_num, validId, validIdNumber FROM user WHERE email = ?';
         const results = await dbQuery(query, [email]);
 
         if (results.length === 0) {
@@ -108,8 +108,27 @@ const updateUser = async (req, res) => {
       res.status(500).json('Error updating user');
     }
   };
-
   
+const updateProfileImage = async (req, res) => {
+    const user = req.user
+    const userId = user.user_id;
+    const { image } = req.body;
+
+    try {
+        const query = 'UPDATE user SET image = ?, updated_at = NOW() WHERE user_id = ?';
+        const result = await dbQuery(query, [image, userId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json('Profile image was not changed');
+        }
+    
+        res.json({ message: 'User updated successfully' });
+    } catch (err) {
+      console.error('Error updating user:', err.message);
+      res.status(500).json('Error updating user');
+    }
+};
+
 const changePassword = async (req, res) => {
     const email = req.user.email;
     const user_id = req.user.user_id;
@@ -170,4 +189,5 @@ module.exports = {
     updateUser,
     deleteUser,
     changePassword,
+    updateProfileImage,
 };

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { createServiceRequest, getServiceRequestById, getServiceRequests, updateServiceRequest, 
-    deleteServiceRequest, changeStatus
+    deleteServiceRequest, changeStatus, getServiceRequestByUserId
     } = require('../controllers/service-request/index');
 
 const { authenticate } = require('../middleware/auth')
@@ -9,6 +9,7 @@ const { authenticate } = require('../middleware/auth')
 // Routes
 //Users Routes
 router.get('/service-request/:id', authenticate, getServiceRequestById);
+router.get('/service-request/user/:id', authenticate, getServiceRequestByUserId);
 router.get('/service-requests/:id', authenticate, getServiceRequests);
 router.get('/service-requests/', authenticate, getServiceRequests);
 router.post('/service-request/', authenticate, createServiceRequest); 
