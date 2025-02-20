@@ -6,14 +6,21 @@ const registerVehicle = async (req, res) => {
     const { name, type, model, plate_number, year, } = req.body;
 
     try {
+        const vehicleQuery = `SELECT * FROM vehicle WHERE plate_number = ?`;
+        const resultVehicle = await dbQuery(vehicleQuery, [plate_number])
+        
+        if (resultVehicle.length > 0) {
+            return res.status(400).json('Plate number already exists' );
+        }
+
         const query = `INSERT INTO vehicle (vehicle_id, user_id, name, type, model, year, plate_number, created_at, updated_at) 
                         VALUES (UUID(), ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
         const result = await dbQuery(query, [userId, name, type, model, year, plate_number]);
 
         res.status(201).json({ message: 'Vehicle registered successfully', userId: result.insertId });
-    } catch (err) {hasEditAccess
+    } catch (err) {
         console.error('Error creating Vehicle:', err.message);
-        res.status(500).json({ error: 'Error creating Vehicle' });
+        res.status(500).json('Error creating Vehicle');
     }
 };
 
@@ -22,11 +29,18 @@ const updateVehicle = async (req, res) => {
     const { name, type, model, plate_number, year } = req.body;
   
     try {
+        const checkQuery = `SELECT vehicle_id FROM vehicle WHERE plate_number = ? AND vehicle_id != ?`;
+        const existingVehicle = await dbQuery(checkQuery, [plate_number, vehicle_id]);
+
+        if (existingVehicle.length > 0) {
+            return res.status(400).json('Plate number already exists for another vehicle');
+        }
+
       const query = `UPDATE vehicle SET name = ?, type = ?, model = ?, year = ?, plate_number = ?, updated_at = NOW() WHERE vehicle_id = ?`;
       const result = await dbQuery(query, [name, type, model, year, plate_number, vehicle_id]);
   
       if (result.affectedRows === 0) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json('Vehicle not found');
       }
   
       res.json({ message: 'Vehicle updated successfully' });
