@@ -158,7 +158,7 @@ const forgotPassword = async (req, res) => {
 const sendEmail = async (email, name, subject, html) => {
   try {
     const response = await axios.post(
-      'https://api.brevo.com/v3/smtp/email',
+      'https://api.brevo.com/v3/emailCampaigns',
       {
         sender: {
           name: "No Reply",
