@@ -42,7 +42,7 @@ app.use(bodyParser.json());
 // passport.serializeUser((user, done) => done(null, user));
 // passport.deserializeUser((user, done) => done(null, user));
 
-const allowedOrigins = ['http://localhost:5173', 'https://car-maintenance-app.vercel.app', 'https://car-maintenance-app-git-dev-sonics-projects-ce6ca4bf.vercel.app'];
+const allowedOrigins = ['http://localhost:5173',  'https://car-maintenance-app-seven.vercel.app', 'car-maintenance-18npq90ih-pats-projects-36232253.vercel.app','https://car-maintenance-app.vercel.app', 'https://car-maintenance-app-git-dev-sonics-projects-ce6ca4bf.vercel.app'];
 
 // CORS Middleware
 app.use(cors({
