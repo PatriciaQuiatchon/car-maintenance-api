@@ -161,8 +161,8 @@ const sendEmail = async (email, name, subject, html) => {
       'https://api.brevo.com/v3/smtp/email',
       {
         sender: {
-          name: "No Reply",
-          email: "noreply@performanceplus.com",
+          name: "No Reply
+          email: "quiatchonpatriciamae1@gmail.com",
         },
         to: [
           {
