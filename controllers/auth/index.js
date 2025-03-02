@@ -162,7 +162,8 @@ const sendEmail = async (email, name, subject, html) => {
       {
         sender: {
           name: "No Reply",
-          email: "quiatchonpatriciamae1@gmail.com",
+          email: "noreply@performanceplus.com",
+          // email: "quiatchonpatriciamae1@gmail.com",
         },
         to: [
           {
