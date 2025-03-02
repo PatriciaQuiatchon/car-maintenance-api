@@ -176,7 +176,7 @@ const sendEmail = async (email, name, subject, html) => {
       {
         headers: {
           'accept': 'application/json',
-          'api-key':"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",
+          'api-key':"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",
           'Content-Type': 'application/json',
         },
       }
