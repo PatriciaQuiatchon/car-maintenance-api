@@ -13,6 +13,57 @@ const fetchServices = async (orderBy, direction, validatedLimit) => {
         throw new Error(`Error fetching services: ${err.message}`);
     }
 }
+// const fetchAvailableServices = async (orderBy, direction, validatedLimit) => {
+//     try {
+//         const query = `
+//             SELECT s.*
+//             FROM service s
+//             LEFT JOIN (
+//                 SELECT s.service_id, COUNT(*) AS request_count
+//                 FROM service_request sr
+//                 JOIN service s ON FIND_IN_SET(s.service_id, sr.service_id) > 0
+//                 WHERE DATE(sr.created_at) = CURDATE()
+//                 GROUP BY s.service_id
+//             ) sr_count ON s.service_id = sr_count.service_id
+//             WHERE COALESCE(sr_count.request_count, 0) < 1
+//             ORDER BY ${orderBy} ${direction}
+//             LIMIT ?;
+//         `;
+//         const results = await dbQuery(query, [validatedLimit]);
+//         return results;
+//     } catch (err) {
+//         throw new Error(`Error fetching services: ${err.message}`);
+//     }
+// };
+
+const fetchAvailableServices = async (orderBy, direction, validatedLimit, excludedRequestId = null) => {
+    try {
+        const query = `
+            SELECT s.*
+            FROM service s
+            LEFT JOIN (
+                SELECT s.service_id, COUNT(*) AS request_count
+                FROM service_request sr
+                JOIN service s ON FIND_IN_SET(s.service_id, sr.service_id) > 0
+                WHERE DATE(sr.created_at) = CURDATE()
+                ${excludedRequestId ? " AND sr.request_id != ? " : ""}
+                GROUP BY s.service_id
+            ) sr_count ON s.service_id = sr_count.service_id
+            WHERE COALESCE(sr_count.request_count, 0) < 5
+            ORDER BY ${orderBy} ${direction}
+            LIMIT ?;
+        `;
+
+        // Prepare parameters: add excludedRequestId if provided
+        const params = excludedRequestId ? [excludedRequestId, validatedLimit] : [validatedLimit];
+
+        const results = await dbQuery(query, params);
+        return results;
+    } catch (err) {
+        throw new Error(`Error fetching services: ${err.message}`);
+    }
+};
+
 
 const createHistory = async (data, id) => {
     const {
@@ -50,4 +101,5 @@ module.exports = {
     fetchServices,
     createHistory,
     changeStatusRepo,
+    fetchAvailableServices,
 }

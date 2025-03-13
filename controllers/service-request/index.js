@@ -1,7 +1,7 @@
 const dbQuery = require("../../db/db");
 const dayjs = require('dayjs');
 
-const { fetchServices, changeStatusRepo, createHistory } = require("../../repository/service");
+const { fetchServices, changeStatusRepo, createHistory, fetchAvailableServices } = require("../../repository/service");
 const { fetchUserByRole } = require("../../repository/user");
 const { fetchVehicleByUser } = require("../../repository/vehicle");
 const { sendEmail } = require("../auth");
@@ -139,6 +139,7 @@ const getServiceRequestByUserId = async (req, res) => {
 const getServiceRequests = async (req, res) => {
     let userId;
     const role = req.user.role;
+    const request_id = req.params.request;
     if (role === "customer") {
         userId = req.user.user_id;
     }
@@ -207,12 +208,14 @@ const getServiceRequests = async (req, res) => {
 
         // Fetch additional data (services, mechanics, and vehicles) only if `onlyRequest` is not true
         if (onlyRequest !== "true") {
-            const services = await fetchServices(orderBy, "ASC", validatedLimit);
+            const services = await fetchAvailableServices(orderBy, "ASC", validatedLimit, request_id ? request_id : null);
+            const allServices = await fetchServices(orderBy, "ASC", validatedLimit);
             const mechanics = await fetchUserByRole(orderBy, "ASC", "mechanic", validatedLimit);
             const vehicles = await fetchVehicleByUser(orderBy, direction, userId, validatedLimit);
 
             finalResults = {
                 ...finalResults,
+                allServices,
                 services,
                 mechanics,
                 vehicles,

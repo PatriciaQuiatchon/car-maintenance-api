@@ -10,7 +10,8 @@ const { authenticate } = require('../middleware/auth')
 //Users Routes
 router.get('/service-request/:id', authenticate, getServiceRequestById);
 router.get('/service-request/user/:id', authenticate, getServiceRequestByUserId);
-router.get('/service-requests/:id', authenticate, getServiceRequests);
+router.get('/service-requests/:id/:request', authenticate, getServiceRequests);
+router.get('/service-requests/:id/', authenticate, getServiceRequests);
 router.get('/service-requests/', authenticate, getServiceRequests);
 router.post('/service-request/', authenticate, createServiceRequest); 
 router.put('/service-request/:id', authenticate, updateServiceRequest);

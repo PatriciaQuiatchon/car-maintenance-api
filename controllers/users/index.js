@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const dbQuery = require("../../db/db");
 const { fetchUserByRole } = require("../../repository/user");
+const { sendEmail } = require("../auth");
 
 const createUser = async (req, res) => {
     const { name, email, password, role, address, phone_num, validId, validIdNumber } = req.body;
@@ -155,7 +156,14 @@ const changePassword = async (req, res) => {
         if (result.affectedRows === 0) {
             return res.status(404).json('Error on changing the password');
         }
-    
+        
+        const htmlContent = `<html><body>
+                    <p>Hi ${user.name},</p>
+                    <p>Your password has been successfully changed. If you did not make this change, please reset your password immediately or contact support.</p>
+                    </body></html>`;
+
+        await sendEmail(email, user.name, 'Your Password Has Been Successfully Changed', htmlContent)
+        
         res.json({ message: 'Password changed successfully' });
     } catch (err) {
       console.error('Error updating user:', err.message);
